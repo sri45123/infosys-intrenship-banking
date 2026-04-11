@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaBank Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <div class="app-shell">
+        <header class="hero">
+            <div>
+                <h1>NovaBank Console</h1>
+                <p>Fast, safe, and clear banking operations in one place.</p>
+                <p id="auth-status" class="auth-status">Not logged in</p>
+            </div>
+            <div class="hero-actions">
+                <button class="secondary" onclick="showSection('auth')">Register / Login</button>
+                <button class="secondary" onclick="showSection('dashboard')">Dashboard</button>
+                <button class="secondary" onclick="logoutUser()">Logout</button>
+                <button class="secondary" onclick="openLock()">Privacy Lock</button>
+            </div>
+        </header>
+
+        <div id="notification" class="notification hidden"></div>
+        <div id="toast-stack" class="toast-stack"></div>
+
+        <div class="button-container">
+            <button onclick="showSection('auth')">Register / Login</button>
+            <button onclick="showSection('dashboard')">Dashboard</button>
+            <button onclick="showSection('create')">Create Account</button>
+            <button onclick="showSection('deposit')">Deposit</button>
+            <button onclick="showSection('withdraw')">Withdraw</button>
+            <button onclick="showSection('transfer')">Transfer</button>
+            <button onclick="showSection('view')">View Balance</button>
+            <button onclick="showSection('history')">Transaction History</button>
+            <button onclick="showSection('list')">View All Accounts</button>
+        </div>
+    </div>
+
+    <div id="auth" class="section">
+        <h3>Register User</h3>
+        <input id="r-name" placeholder="Full name">
+        <input id="r-username" placeholder="Username">
+        <input id="r-email" placeholder="Email">
+        <input id="r-password" type="password" placeholder="Password (min 4 chars)">
+        <input id="r-pin" type="password" maxlength="6" placeholder="PIN (optional, 4-6 digits)">
+        <button onclick="registerUser()">Register</button>
+        <p id="register-result" class="result"></p>
+
+        <h3>Login</h3>
+        <input id="l-username" placeholder="Username (or use email)">
+        <input id="l-email" placeholder="Email">
+        <input id="l-password" type="password" placeholder="Password">
+        <button onclick="loginUser()">Login</button>
+        <p id="login-result" class="result"></p>
+
+        <h3>Forgot Password</h3>
+        <input id="fp-email" placeholder="Registered email">
+        <button onclick="requestPasswordResetCode()">Send Reset Code</button>
+        <input id="fp-code" placeholder="6-digit reset code">
+        <input id="fp-new-password" type="password" placeholder="New password (min 4 chars)">
+        <button onclick="resetForgottenPassword()">Reset Password</button>
+        <p id="forgot-result" class="result"></p>
+
+        <h3>Set / Update PIN</h3>
+        <input id="p-pin" type="password" maxlength="6" placeholder="New PIN (4-6 digits)">
+        <button onclick="savePin()">Save PIN</button>
+        <p id="pin-result" class="result"></p>
+    </div>
+
+    <div id="dashboard" class="section">
+        <h3>Account Dashboard & Analytics</h3>
+        <input id="dash-acc" placeholder="Account Number (optional filter)">
+        <button onclick="loadDashboard()">Load Dashboard</button>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <p>Total Deposits</p>
+                <h4 id="kpi-deposit">0</h4>
+            </div>
+            <div class="kpi-card">
+                <p>Total Withdrawals</p>
+                <h4 id="kpi-withdraw">0</h4>
+            </div>
+            <div class="kpi-card">
+                <p>Total Transfers</p>
+                <h4 id="kpi-transfer">0</h4>
+            </div>
+        </div>
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h4>Deposit vs Withdraw</h4>
+                <canvas id="dw-chart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Monthly Spending</h4>
+                <canvas id="monthly-chart"></canvas>
+            </div>
+        </div>
+        <h4>Recent Transactions</h4>
+        <ul id="dash-recent" class="history-list"></ul>
+    </div>
+
+    <div id="create" class="section">
+        <h3>Create Account</h3>
+        <input id="c-name" placeholder="Enter name">
+        <input id="c-email" placeholder="Enter email">
+        <input id="c-balance" placeholder="Enter opening balance" type="number" min="0" step="0.01">
+        <button onclick="createAccount()">Submit</button>
+        <p id="create-result" class="result"></p>
+    </div>
+
+    <div id="deposit" class="section">
+        <h3>Deposit Money</h3>
+        <input id="d-acc" placeholder="Account Number">
+        <input id="d-amount" placeholder="Amount" type="number" min="0.01" step="0.01">
+        <button onclick="deposit()">Submit</button>
+        <p id="deposit-result" class="result"></p>
+    </div>
+
+    <div id="withdraw" class="section">
+        <h3>Withdraw Money</h3>
+        <input id="w-acc" placeholder="Account Number">
+        <input id="w-amount" placeholder="Amount" type="number" min="0.01" step="0.01">
+        <button onclick="withdraw()">Submit</button>
+        <p id="withdraw-result" class="result"></p>
+    </div>
+
+    <div id="transfer" class="section">
+        <h3>Transfer Money</h3>
+        <input id="t-from" placeholder="Sender Account">
+        <input id="t-to" placeholder="Receiver Account">
+        <input id="t-amount" placeholder="Amount" type="number" min="0.01" step="0.01">
+        <button onclick="transfer()">Submit</button>
+        <p id="transfer-result" class="result"></p>
+    </div>
+
+    <div id="view" class="section">
+        <h3>View Balance</h3>
+        <input id="v-acc" placeholder="Account Number">
+        <button onclick="viewAccount()">Submit</button>
+        <div id="view-result" class="balance-card hidden"></div>
+    </div>
+
+    <div id="history" class="section">
+        <h3>Transaction History (Detailed)</h3>
+        <input id="h-acc" placeholder="Account Number (optional)">
+        <select id="h-type">
+            <option value="">All Types</option>
+            <option value="DEPOSITE">Deposit</option>
+            <option value="WITHDRAW">Withdraw</option>
+            <option value="TRANSFER">Transfer</option>
+        </select>
+        <input id="h-min" type="number" placeholder="Min Amount" min="0" step="0.01">
+        <input id="h-max" type="number" placeholder="Max Amount" min="0" step="0.01">
+        <label>From Date</label>
+        <input id="h-from" type="date">
+        <label>To Date</label>
+        <input id="h-to" type="date">
+        <button onclick="loadHistory()">Apply Filters</button>
+        <ul id="history-result" class="history-list"></ul>
+    </div>
+
+    <div id="list" class="section">
+        <h3>All Accounts</h3>
+        <button onclick="listAccounts()">Load Accounts</button>
+        <pre id="list-result"></pre>
+    </div>
+
+    <div id="lock-overlay" class="lock-overlay hidden">
+        <div class="lock-card">
+            <h3>Privacy Lock</h3>
+            <p>Enter PIN to continue</p>
+            <input id="lock-pin" type="password" maxlength="6" placeholder="PIN">
+            <div class="lock-actions">
+                <button onclick="unlockApp()">Unlock</button>
+                <button class="secondary" onclick="closeLock()">Cancel</button>
+            </div>
+            <p id="lock-result" class="result"></p>
+        </div>
+    </div>
+
+    <div id="global-loading" class="global-loading hidden">Processing request...</div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
